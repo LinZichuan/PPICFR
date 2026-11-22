@@ -21,8 +21,8 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from collections import defaultdict
 
 try:
-    from model.models import ShareNetwork, PrpsyNetwork, Mu1Network, Mu0Network, TauNetwork, PIPCFR, DRCFR, PrpsyNetworkTrainer
-    from model.models import TransformerNetwork, PIPCFR_on_DRCFR
+    from model.models import ShareNetwork, PrpsyNetwork, Mu1Network, Mu0Network, TauNetwork, PPICFR, DRCFR, PrpsyNetworkTrainer
+    from model.models import TransformerNetwork, PPICFR_on_DRCFR
     from model.dataset import ESXDataset
     from model.util import wasserstein_torch, mmd2_torch
 except:
@@ -148,7 +148,7 @@ def cal_total_loss(inputs, next_inputs, t_labels, y_labels, model, cfg, eff_tau=
             (1 - all_p_prpsy.detach()) * (torch.log(1 - all_p_prpsy.detach()) - torch.log(1 - p_prpsy))
         ))
 
-    if 'pipcfr' in cfg.model_name:
+    if 'ppicfr' in cfg.model_name:
         total_loss = prpsy_loss + tr_loss + cr_loss + all_y_loss + hs_kl_loss + all_prpsy_loss \
         + counter_factaul_loss + align_loss
         if 'cfrnet' in cfg.teacher_model_name or 'drcfr' in cfg.teacher_model_name:
@@ -324,7 +324,7 @@ def train(data_dict, device, cfg):
     print(y_scaler)
     use_transformer = cfg.use_transformer
     prpsy_indep = cfg.prpsy_indep
-    if 'pipcfr' in cfg.model_name:
+    if 'ppicfr' in cfg.model_name:
         if 'dragonnet' in cfg.teacher_model_name:
             prpsy_indep = False
         else:
@@ -1015,11 +1015,11 @@ def train(data_dict, device, cfg):
                                     cfg=cfg,
                                     device=device,
                                     next_dim=cfg.base_dim)
-                model = PIPCFR_on_DRCFR(prpsy_network, mu1_network, mu0_network, shareNetwork, drcfr_model,
+                model = PPICFR_on_DRCFR(prpsy_network, mu1_network, mu0_network, shareNetwork, drcfr_model,
                                         next_shareNetwork, all_prpsy_network, hs_mu1_network, hs_mu0_network, 
                                         device, freeze_all_prpsy_network=freeze_all_prpsy_network, prpsy_shareNetwork=prpsy_shareNetwork, y_scaler=y_scaler)
             else:
-                model = PIPCFR(prpsy_network, mu1_network, mu0_network, tau_network, shareNetwork, notshareNetwork,
+                model = PPICFR(prpsy_network, mu1_network, mu0_network, tau_network, shareNetwork, notshareNetwork,
                                     next_shareNetwork, hs_mu1_network, hs_mu0_network, all_mu1_network, all_mu0_network,
                                     all_prpsy_network,
                                     cfg, device, tarreg=cfg.tarreg,
@@ -1073,7 +1073,7 @@ def train(data_dict, device, cfg):
 
                     optimizer.step()
 
-                    if 'pipcfr' in cfg.model_name:
+                    if 'ppicfr' in cfg.model_name:
                         model.freeze_all_prpsy_network.load_state_dict(model.all_prpsy_network.state_dict())
 
                 except Exception as e:

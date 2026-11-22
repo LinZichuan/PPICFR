@@ -1,0 +1,19 @@
+# Python and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local OS files
+.DS_Store
+
+# Generated experiment artifacts (bundled raw data remain tracked)
+/results/
+/filelogs/
+/data/IHDP/data/
+/data/NEWS/data/
+/data/NEWS/figures/
+/data/synthetic/data/

@@ -169,7 +169,7 @@ class TauNetwork(nn.Module):
         return tau_logit
 
 
-class PIPCFR(nn.Module):
+class PPICFR(nn.Module):
 
     def __init__(self, prpsy_network: PrpsyNetwork, \
                  mu1_network: Mu1Network, mu0_network: Mu0Network, tau_network: TauNetwork, shareNetwork: ShareNetwork,
@@ -177,7 +177,7 @@ class PIPCFR(nn.Module):
                  next_shareNetwork: ShareNetwork, hs_mu1_network: Mu1Network, hs_mu0_network: Mu0Network,
                  all_mu1_network: Mu1Network, all_mu0_network: Mu0Network, all_prpsy_network: PrpsyNetwork,
                  cfg, device, tarreg=False, freeze_all_prpsy_network=None, share_rep=False, prpsy_shareNetwork: ShareNetwork=None, y_scaler=None):
-        super(PIPCFR, self).__init__()
+        super(PPICFR, self).__init__()
         # self.feature_extractor = feature_extractor
         self.shareNetwork = shareNetwork.to(device)
         self.notshareNetwork = notshareNetwork.to(device)
@@ -299,13 +299,13 @@ class PIPCFR(nn.Module):
             all_p_mu1, all_p_mu0, hs_p_mu1, hs_p_mu0, all_p_prpsy_nograd, all_p_prpsy
 
 
-class PIPCFR_on_DRCFR(nn.Module):
+class PPICFR_on_DRCFR(nn.Module):
     def __init__(self, prpsy_network: PrpsyNetwork, \
                  mu1_network: Mu1Network, mu0_network: Mu0Network, shareNetwork: ShareNetwork,
                  DRCFR_network, next_shareNetwork: ShareNetwork, all_prpsy_network: PrpsyNetwork,
                  hs_mu1_network: Mu1Network, hs_mu0_network: Mu0Network,
                  device, freeze_all_prpsy_network=None, prpsy_shareNetwork: ShareNetwork=None, y_scaler=None):
-        super(PIPCFR_on_DRCFR, self).__init__()
+        super(PPICFR_on_DRCFR, self).__init__()
         self.shareNetwork = shareNetwork.to(device)
         self.prpsy_network = prpsy_network.to(device)
         self.mu1_network = mu1_network.to(device)

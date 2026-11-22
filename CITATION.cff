@@ -1,0 +1,48 @@
+cff-version: 1.2.0
+message: "If you use PPICFR, please cite the WSDM 2027 paper listed below."
+title: "PPICFR: Post-treatment-informed Pseudo-outcome Imputation for Individual Treatment Effect Estimation"
+type: software
+license: Apache-2.0
+authors:
+  - family-names: Lin
+    given-names: Zichuan
+  - family-names: Huang
+    given-names: Xiaokai
+  - family-names: Han
+    given-names: Yuxuan
+  - family-names: Ren
+    given-names: Yixin
+  - family-names: Liu
+    given-names: Jiate
+  - family-names: Chen
+    given-names: Jia
+  - family-names: Wu
+    given-names: Xiapeng
+  - family-names: Ye
+    given-names: Deheng
+preferred-citation:
+  type: conference-paper
+  title: "PPICFR: Post-treatment-informed Pseudo-outcome Imputation for Individual Treatment Effect Estimation"
+  authors:
+    - family-names: Lin
+      given-names: Zichuan
+    - family-names: Huang
+      given-names: Xiaokai
+    - family-names: Han
+      given-names: Yuxuan
+    - family-names: Ren
+      given-names: Yixin
+    - family-names: Liu
+      given-names: Jiate
+    - family-names: Chen
+      given-names: Jia
+    - family-names: Wu
+      given-names: Xiapeng
+    - family-names: Ye
+      given-names: Deheng
+  collection-title: "Proceedings of the Twentieth ACM International Conference on Web Search and Data Mining"
+  year: 2027
+  doi: 10.1145/3862322.3863512
+  url: "https://doi.org/10.1145/3862322.3863512"
+  publisher:
+    name: ACM

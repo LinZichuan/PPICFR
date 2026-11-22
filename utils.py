@@ -14,7 +14,7 @@ from types import SimpleNamespace
 DEFAULT_CFG = './configs/default.yaml'
 DEFAULT_NEWS_CFG = './configs/NEWS/default.yaml'
 DEFAULT_IHDP_CFG = './configs/IHDP/default.yaml'
-DEFAULT_SYN_CFG = './configs/synthetic/default.yaml'
+DEFAULT_SYN_CFG = './configs/Synthetic/default.yaml'
 DEFAULT_REALWORLD_KNN_CFG = './configs/real_world_knn/default.yaml'
 DEFAULT_REALWORLD_PSM_CFG = './configs/real_world_psm/default.yaml'
 

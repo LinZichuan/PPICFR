@@ -13,7 +13,7 @@ lr: 0.001
 decay_rate: 0.95
 decay_step_size: 1
 l2: 0.001
-model_name: "pipcfr"
+model_name: "ppicfr"
 batch_size: 128
 epochs: 1000
 device: 'cpu'  # 'cuda:0'
