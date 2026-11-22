@@ -56,7 +56,9 @@ The Synthetic list runs 20 configurations on `cuda:0`–`cuda:7`. To run a singl
 | `data/` | Benchmark inputs and temporal data generators |
 | `configs/` | Global, dataset, and PPICFR configuration files |
 | `examples/` | JSON experiment lists |
-| `model/models.py` | PPICFR, encoders, outcome heads, and teacher networks |
+| `model/layers.py` | Shared network components |
+| `model/ppicfr.py` | PPICFR models |
+| `model/baselines.py` | Baseline architectures and estimators |
 | `learn.py` | Losses, model construction, and training |
 | `eval.py` | Metrics and result summaries |
 | `utils.py` | Configuration loading, data loading, and splitting |

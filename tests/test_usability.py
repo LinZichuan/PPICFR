@@ -341,17 +341,41 @@ class PreflightTests(unittest.TestCase):
 
 
 class ProjectTests(unittest.TestCase):
-    def test_models_are_defined_and_imported_with_matching_names(self):
-        models = ast.parse((ROOT / "model/models.py").read_text())
-        classes = {node.name for node in models.body if isinstance(node, ast.ClassDef)}
-        self.assertTrue({"PPICFR", "PPICFR_on_DRCFR"}.issubset(classes))
+    def test_model_modules_define_learn_imports(self):
+        modules = {}
+        for path in ("model/layers.py", "model/ppicfr.py", "model/baselines.py"):
+            tree = ast.parse((ROOT / path).read_text())
+            modules[path] = {node.name for node in tree.body
+                             if isinstance(node, (ast.ClassDef, ast.FunctionDef))}
+        self.assertTrue({"ShareNetwork", "PrpsyNetwork", "Mu1Network", "Mu0Network",
+                         "TauNetwork", "TransformerNetwork"}.issubset(modules["model/layers.py"]))
+        self.assertTrue({"PPICFR", "PPICFR_on_DRCFR"}.issubset(modules["model/ppicfr.py"]))
+        self.assertIn("DRCFR", modules["model/baselines.py"])
         learning = ast.parse((ROOT / "learn.py").read_text())
-        imports = {alias.name for node in ast.walk(learning) if isinstance(node, ast.ImportFrom)
-                   and node.module == "model.models" for alias in node.names}
-        self.assertTrue({"PPICFR", "PPICFR_on_DRCFR"}.issubset(imports))
+        for node in ast.walk(learning):
+            if isinstance(node, ast.ImportFrom) and node.module and node.module.startswith("model."):
+                if node.module == "model.dataset" or node.module == "model.util":
+                    continue
+                module_path = node.module.replace(".", "/") + ".py"
+                self.assertIn(module_path, modules, node.module)
+                for alias in node.names:
+                    self.assertIn(alias.name, modules[module_path], alias.name)
         calls = {node.func.id for node in ast.walk(learning) if isinstance(node, ast.Call)
                  and isinstance(node.func, ast.Name)}
         self.assertTrue({"PPICFR", "PPICFR_on_DRCFR"}.issubset(calls))
+
+    def test_model_module_cross_references_resolve(self):
+        defined = set()
+        for path in ("model/layers.py", "model/ppicfr.py", "model/baselines.py"):
+            tree = ast.parse((ROOT / path).read_text())
+            defined |= {node.name for node in tree.body
+                        if isinstance(node, (ast.ClassDef, ast.FunctionDef))}
+        for path in ("model/ppicfr.py", "model/baselines.py"):
+            tree = ast.parse((ROOT / path).read_text())
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ImportFrom) and node.module == "model.layers":
+                    for alias in node.names:
+                        self.assertIn(alias.name, defined, alias.name)
 
     def test_example_configuration_files_and_portability_checks(self):
         for path in (ROOT / "examples").glob("*.json"):

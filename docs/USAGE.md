@@ -91,7 +91,7 @@ The NPZ loader expects:
 
 Bundled arrays use `[N,D,1]` for features and `[N,1]` for treatments/outcomes. Splitting squeezes singleton dimensions. Synthetic post-treatment features use consecutive V/M/A blocks, converted to `[N,T,m_v+m_m+m_a]` for the encoder.
 
-The fields `ycf` and `tau` are used for validation and evaluation; the bundled generators provide them. PPICFR assumes binary treatment, overlap, SUTVA, and unconfoundedness. Model definitions are in `model.models` and the training loop in `learn.py`; NPZ files may contain pickled objects, so load only trusted files.
+The fields `ycf` and `tau` are used for validation and evaluation; the bundled generators provide them. PPICFR assumes binary treatment, overlap, SUTVA, and unconfoundedness. Models are defined in `model/layers.py` (shared components), `model/ppicfr.py` (PPICFR), and `model/baselines.py` (baselines); the training loop is in `learn.py`. NPZ files may contain pickled objects, so load only trusted files.
 
 ## Results
 

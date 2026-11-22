@@ -21,8 +21,9 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from collections import defaultdict
 
 try:
-    from model.models import ShareNetwork, PrpsyNetwork, Mu1Network, Mu0Network, TauNetwork, PPICFR, DRCFR, PrpsyNetworkTrainer
-    from model.models import TransformerNetwork, PPICFR_on_DRCFR
+    from model.layers import ShareNetwork, PrpsyNetwork, Mu1Network, Mu0Network, TauNetwork, TransformerNetwork
+    from model.ppicfr import PPICFR, PPICFR_on_DRCFR
+    from model.baselines import DRCFR, PrpsyNetworkTrainer
     from model.dataset import ESXDataset
     from model.util import wasserstein_torch, mmd2_torch
 except:

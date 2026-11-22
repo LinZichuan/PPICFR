@@ -4,15 +4,17 @@
 
 | Component | Implementation |
 | --- | --- |
-| Post-treatment encoder (PRL) | `next_shareNetwork`; `ShareNetwork` / `TransformerNetwork` in `model/models.py` |
+| Post-treatment encoder (PRL) | `next_shareNetwork`; `ShareNetwork` / `TransformerNetwork` in `model/layers.py` |
 | Pseudo-counterfactual constructor (PCC) | `notshareNetwork`, `all_mu1_network`, `all_mu0_network`; teacher branches in `learn.py` |
-| Final counterfactual regressor (CFR) | `shareNetwork`, `mu1_network`, `mu0_network` in `model/models.py` |
+| Final counterfactual regressor (CFR) | `shareNetwork`, `mu1_network`, `mu0_network` |
+| PPICFR models | `PPICFR`, `PPICFR_on_DRCFR` in `model/ppicfr.py` |
+| Baseline architectures | `DRCFR` and estimators in `model/baselines.py` |
 | Losses and training | `learn.cal_total_loss()`, `learn.train()` |
 | Discrepancy | `model/util.py` |
 | Data and splits | `utils.load_data()`, `utils.sample_data()` |
 | Evaluation | `eval.py` and `learn.evalWithData()` |
 
-Import model definitions from `model.models`, including `PPICFR` and `PPICFR_on_DRCFR`.
+Import model definitions from `model.ppicfr` and `model.layers`.
 
 ## Workflow
 
