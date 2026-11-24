@@ -17,37 +17,52 @@ python tools/check_environment.py --generators
 
 PairNet and ESCFR need [additional dependencies](docs/USAGE.md#baseline-dependencies).
 
-## Run IHDP
+## Generate Training Data
 
-Execute from the repository root:
-
-```bash
-(cd data/IHDP && python generate_data.py)
-python run_experiment.py --experiments examples/model_ihdp.json
+**IHDP**
+```
+cd data/IHDP
+python generate_data.py
+cd ..
 ```
 
-This runs 50 repetitions, with up to 100 epochs each, on CPU. Results are saved to `results/IHDP/`.
-
-To inspect an experiment without training:
-
-```bash
-python run_experiment.py --experiments examples/model_ihdp.json --dry-run
-python tools/check_environment.py --experiments examples/model_ihdp.json --check-data
+**NEWS**
+```
+cd data/NEWS
+python generate_data.py
+cd ..
 ```
 
-## Other datasets
-
-```bash
-# NEWS
-(cd data/NEWS && python generate_data.py)
-python run_experiment.py --experiments examples/model_news.json
-
-# Synthetic: generate the configured sequence-length/noise settings
-(cd data/synthetic && bash generate_data.sh)
-python run_experiment.py --experiments examples/model_synthetic.json
+**Synthetic Data**
+```
+cd data/synthetic
+bash generate_data.sh
+cd ..
 ```
 
-The Synthetic list runs 20 configurations on `cuda:0`–`cuda:7`. To run a single configuration on CPU, copy an entry and set `device` in `params` (see [configuration](docs/USAGE.md#configuration)).
+## Run Experiments
+
+Run experiments for NEWS dataset
+```
+MODELS_JSON='./examples/model_news.json' python run_experiment.py
+```
+
+Run experiments for IHDP dataset
+```
+MODELS_JSON='./examples/model_ihdp.json' python run_experiment.py
+```
+
+Run experiments for Synthetic dataset
+```
+MODELS_JSON='./examples/model_synthetic.json' python run_experiment.py
+```
+
+`MODELS_JSON` is the configure information of models. You can add model in `./examples/`.
+
+## Documentation
+
+- **[Usage](docs/USAGE.md)** is the reference for running and troubleshooting experiments. It covers how experiment lists are selected (`MODELS_JSON` and `--experiments`), the JSON/YAML configuration keys and their precedence, the NPZ data format, result files, read-only environment checks, extra baseline dependencies, and the size and device requirements of each example list (the Synthetic list runs 20 configurations on `cuda:0`–`cuda:7`). Use it when adding a JSON file under `examples/`, tuning `configs/`, reading `results/`, or checking inputs before a long run, e.g. `python tools/check_environment.py --experiments ./examples/model_ihdp.json --check-data`.
+- **[Contributing](CONTRIBUTING.md)** is the guide for extending the code. It maps each component (post-treatment encoder, pseudo-counterfactual constructor, final counterfactual regressor, baselines, losses, discrepancy, data loading, evaluation) to its implementation, and gives the change workflow, the lightweight test command, and what an issue report should include. Follow it before changing a model, loss, seed, preprocessing, or metric; run `python -m unittest discover -s tests -v` before proposing a change.
 
 ## Project structure
 

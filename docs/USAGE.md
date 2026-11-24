@@ -13,7 +13,7 @@ Relative paths resolve from the repository root. `--dry-run` validates and displ
 MODELS_JSON=examples/model_news.json python run_experiment.py
 ```
 
-`--experiments` takes precedence over `MODELS_JSON`; an experiment list must be selected explicitly. Data-generation commands in the [README](../README.md) use subshells so the working directory stays unchanged.
+`--experiments` takes precedence over `MODELS_JSON`; an experiment list must be selected explicitly. The data-generation blocks in the [README](../README.md) are run from the repository root with `cd`; `run_experiment.py` also changes to the repository root, so relative paths such as `./examples/...` resolve consistently.
 
 | Example | Configurations | Repetitions | Epoch limit | Device |
 | --- | ---: | ---: | ---: | --- |
