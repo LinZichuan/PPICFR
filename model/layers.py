@@ -163,7 +163,7 @@ class TransformerNetwork(nn.Module):
 
         self.embedding = nn.Linear(input_dim, hidden_dim)
         self.positional_encoding = self._generate_positional_encoding(hidden_dim, 10000)
-        encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=num_heads, dropout=dropout)
+        encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=num_heads, dropout=dropout, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers)
         self.output_layer = nn.Linear(hidden_dim, output_dim)
         self.device = device
@@ -176,12 +176,12 @@ class TransformerNetwork(nn.Module):
         div_term = torch.exp(torch.arange(0, hidden_dim, 2).float() * (-math.log(10000.0) / hidden_dim))
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
-        pe = pe.unsqueeze(0).transpose(0, 1)
+        pe = pe.unsqueeze(0)
         return pe
 
     def forward(self, x):
         x = x.to(self.device)
-        x = self.embedding(x) + self.positional_encoding[:x.size(0), :]
+        x = self.embedding(x) + self.positional_encoding[:, :x.size(1), :]
         x = self.transformer_encoder(x)
         x = self.output_layer(x)
         x = torch.mean(x, dim=1)  # 对时间步维度进行平均池化

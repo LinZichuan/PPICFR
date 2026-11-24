@@ -297,8 +297,14 @@ def evalWithData(group_name, model, writer, cfg, x, next_x, yf, t, eff_tau=None)
     if eff_tau is not None:
         eff_tau = torch.from_numpy(eff_tau).float().reshape((-1, 1)).to(model.device)
     writer_flag = not writer is None
-    dict_result = cal_total_loss(x, next_x, t, yf, model, cfg, eff_tau=eff_tau, valid_stage=True)
-    
+    was_training = model.training
+    model.eval()
+    try:
+        with torch.no_grad():
+            dict_result = cal_total_loss(x, next_x, t, yf, model, cfg, eff_tau=eff_tau, valid_stage=True)
+    finally:
+        model.train(was_training)
+
     return dict_result
 
 
@@ -1063,6 +1069,7 @@ def train(data_dict, device, cfg):
                 y_labels = torch.unsqueeze(y_labels.to(device), 1)
 
                 try:
+                    optimizer.zero_grad(set_to_none=True)
                     total_loss = cal_total_loss(inputs, next_inputs, t_labels, y_labels, model, cfg)
                     t1 = time.time()
 
