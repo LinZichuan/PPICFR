@@ -42,7 +42,17 @@ def evaluation(model_args):
     if not cfg:
         print("No config files found:", model_args["config"])
         exit(1)
-    
+    use_y_scaler = bool(getattr(cfg, 'use_y_scaler', False))
+
+    def effect_truth(split, name):
+        if not use_y_scaler:
+            return split['tau']
+        if 'tau_original' not in split:
+            raise RuntimeError(
+                f"{name} split has no tau_original while use_y_scaler=true; "
+                "refusing to mix normalized truth with original-scale predictions")
+        return split['tau_original']
+
     print("log testing ...")
     print("cfg:{}".format(cfg))
 
@@ -52,11 +62,23 @@ def evaluation(model_args):
     next_util_rate = cfg.next_util_rate
     feature_util_rate = cfg.feature_util_rate
     data_dict = load_data(data_train_path, feature_util_rate, next_util_rate)
+    if use_y_scaler and (data_dict.get('tau_original') is data_dict.get('tau')
+                         or 'y_scaler' not in data_dict):
+        raise RuntimeError(
+            "use_y_scaler=true requires a dataset with both tau_original and y_scaler; "
+            "otherwise predictions and truth are on different scales")
     print("training dataset loading ...done.")
 
     eval_result_txt = "{}/eval_result.txt".format(cfg.pred_output_dir)
     eval_result_summary_txt = "{}/eval_result_summary.txt".format(cfg.pred_output_dir)
     if os.path.exists(eval_result_txt) and os.path.exists(eval_result_summary_txt):
+        with open(eval_result_txt, 'r', errors='ignore') as f:
+            existing = f.read(4096)
+        if 'truth_scale=' not in existing:
+            raise RuntimeError(
+                "Existing eval_result.txt predates the scale fix (no truth_scale= marker). "
+                "Remove eval_result.txt and eval_result_summary.txt to recompute with "
+                "matched prediction/truth scales.")
         print(f"Evaluation results already exist for model {cfg.model_name}, skipping evaluation.")
         return
 
@@ -105,9 +127,9 @@ def evaluation(model_args):
         ycf_valid = valid_data_dict["ycf"]
         ycf_test = test_data_dict["ycf"]
 
-        tau_train = train_data_dict["tau"]
-        tau_valid = valid_data_dict["tau"]
-        tau_test = test_data_dict["tau"]
+        tau_train = effect_truth(train_data_dict, 'train')
+        tau_valid = effect_truth(valid_data_dict, 'valid')
+        tau_test = effect_truth(test_data_dict, 'test')
 
         t_train = train_data_dict["t"]
         t_valid = valid_data_dict["t"]
@@ -138,8 +160,14 @@ def evaluation(model_args):
         valid_eval_result["key_loss"] = dict_valid_result["key_loss"]
 
 
+    def sample_sd(values):
+        a = np.asarray(values, dtype=float)
+        return float(a.std(ddof=1)) if a.size > 1 else 0.0
+
     result_str = ""
     res = ""
+    result_str += "truth_scale={} variation=SD (mean +/- sample SD over {} runs, not SE)\n".format(
+        'original' if use_y_scaler else 'normalized', cfg.n_experiments)
     result_str += "----test set----\n"
     # print("----test set. split line ----")
 
@@ -158,32 +186,32 @@ def evaluation(model_args):
         if k == "ate_pred" or k == "ate_true":
             continue
         val = np.mean(test_eval_result[k])
-        std = np.std(test_eval_result[k]) / np.sqrt(cfg.n_experiments)
-        # print(k + ": %.6f" % val + " +/- %.6f" % std)
-        result_str += str(k) + ": " + str(round(val, 6)) + "+/- " + str(round(std, 6)) + "\n"
+        sd = sample_sd(test_eval_result[k])
+        # print(k + ": %.6f" % val + " +/- %.6f" % sd)
+        result_str += str(k) + ": " + str(round(val, 6)) + "+/- " + str(round(sd, 6)) + "\n"
         if k in ["E_pehe", "E_ate"]:
-            res += str(k) + " " + str(round(val, 6)) + " +/- " + str(round(std, 6)) + " "
+            res += str(k) + " " + str(round(val, 6)) + " +/- " + str(round(sd, 6)) + " "
         
         val = np.mean(train_eval_result[k])
-        std = np.std(train_eval_result[k]) / np.sqrt(cfg.n_experiments)
-        result_str += str(k) + ": " + str(round(val, 6)) + "+/- " + str(round(std, 6)) + "\n"
+        sd = sample_sd(train_eval_result[k])
+        result_str += str(k) + ": " + str(round(val, 6)) + "+/- " + str(round(sd, 6)) + "\n"
         if k in ["E_pehe", "E_ate"]:
-            res += str(k + "_in") + " " + str(round(val, 6)) + " +/- " + str(round(std, 6)) + " "
+            res += str(k + "_in") + " " + str(round(val, 6)) + " +/- " + str(round(sd, 6)) + " "
 
     print("test_eval_result['ate_pred']: ", test_eval_result["ate_pred"])
     print("test_eval_result['ate_true']: ", test_eval_result["ate_true"])
     ate_mse = np.mean(np.square(np.array(test_eval_result["ate_pred"]) - np.array(test_eval_result["ate_true"])))
-    ate_mse_std = np.std(np.square(np.array(test_eval_result["ate_pred"]) - np.array(test_eval_result["ate_true"]))) / np.sqrt(cfg.n_experiments)
+    ate_mse_sd = sample_sd(np.square(np.array(test_eval_result["ate_pred"]) - np.array(test_eval_result["ate_true"])))
     ate_square_bias = np.square(
         np.mean(np.array(test_eval_result["ate_pred"]) - np.array(test_eval_result["ate_true"])))
     ate_variance = np.mean(
         np.square(np.array(test_eval_result["ate_pred"]) - np.mean(np.array(test_eval_result["ate_pred"]))))
     
     # print("ate_mse: ", ate_mse, "ate_square_bias: ", ate_square_bias, "ate_variance: ", ate_variance)
-    res += " ate_mse: " + str(round(ate_mse, 6)) + " +/- " + str(round(ate_mse_std, 6)) + " ate_square_bias: " + str(
+    res += " ate_mse: " + str(round(ate_mse, 6)) + " +/- " + str(round(ate_mse_sd, 6)) + " ate_square_bias: " + str(
         round(ate_square_bias, 6)) + " ate_variance: " + str(round(ate_variance, 6)) + " key_loss: " + str(
         round(np.mean(test_eval_result["key_loss"]), 6)) if "key_loss" in test_eval_result else ""
-    result_str += "ate_mse: " + str(round(ate_mse, 6)) + " +/- " + str(round(ate_mse_std, 6)) + " ate_square_bias: " + str(
+    result_str += "ate_mse: " + str(round(ate_mse, 6)) + " +/- " + str(round(ate_mse_sd, 6)) + " ate_square_bias: " + str(
         round(ate_square_bias, 6)) + " ate_variance: " + str(round(ate_variance, 6)) + " key_loss: " + str(
         round(np.mean(test_eval_result["key_loss"]), 6)) if "key_loss" in test_eval_result else "" + "\n"
     # model_name = "nokl_" + model_name
